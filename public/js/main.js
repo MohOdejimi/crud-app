@@ -1,5 +1,6 @@
 const deleteText = document.querySelectorAll('.fa-trash')
 const thumbText = document.querySelectorAll('.fa-thumbs-up')
+const thumbDown = document.querySelectorAll('.fa-thumbs-down')
 
 Array.from(deleteText).forEach((element)=>{
     element.addEventListener('click', deleteRapper)
@@ -9,8 +10,11 @@ Array.from(thumbText).forEach((element)=>{
     element.addEventListener('click', addLike)
 })
 
+Array.from(thumbDown).forEach((element) => {
+    element.addEventListener('click', removeLike)
+})
+
 async function deleteRapper(){
-    console.log("DELETE");
     const sName = this.parentNode.childNodes[1].innerText
     const bName = this.parentNode.childNodes[3].innerText
     try{
@@ -50,6 +54,29 @@ async function addLike(){
         location.reload()
 
     }catch(err){
+        console.log(err)
+    }
+}
+
+async function removeLike() {
+    const sName = this.parentNode.childNodes[1].innerText
+    const bName = this.parentNode.childNodes[3].innerText
+    const tlikes = Number(this.parentNode.childNodes[5].innerText)
+
+    try {
+        const response = await fetch('removeOneLike', {
+            method: 'put',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                'stageNameS': sName,
+                'birthNameS': bName,
+                'likesS': tlikes
+            })
+        })
+        const data = await response.json()
+        console.log(data)
+        location.reload();
+    } catch(err) {
         console.log(err)
     }
 }

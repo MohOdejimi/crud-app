@@ -2,17 +2,6 @@ const express = require('express')
 const app = express()
 const MongoClient = require('mongodb').MongoClient
 
-/* const mongoose = require('mongoose')
-
-const uri = process.env.DB_STRING
-
-mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true})
-
-mongoose.connection.on('connected', () => {
-    console.log('Connected to MongoDB');
-}); */
-
-
 require('dotenv').config()
 
 app.set('view engine', 'ejs')
@@ -32,6 +21,7 @@ MongoClient.connect(dbConnectionStr, { useUnifiedTopology: true })
         console.log(e);
         console.log("Error Connecting to DB");
     })
+
 const PORT = 2525
 
 app.get('/', (request, response) => {
@@ -45,7 +35,7 @@ app.get('/', (request, response) => {
 app.post('/addRapper', (request, response) => {
     console.log(request.body)
     db.collection('rappers').insertOne({ stageName: request.body.stageName, birthName: request.body.birthName, likes: 0 })
-        .then(result => {
+        .then(result => {            
             console.log('Rapper Added')
             console.log(result);
             response.redirect('/')
@@ -63,7 +53,45 @@ app.delete('/deleteRapper', (request, response) => {
         .catch(error => console.error(error))
 })
 
-app.put('/')
+app.put('/addOneLike', (request, response) => {
+    db.collection('rappers').updateOne({
+        stageName: request.body.stageNameS, 
+        birthName: request.body.birthNameS,
+        likes: request.body.likesS},{
+        $set: {
+            likes:request.body.likesS + 1
+          }
+    },{
+        sort: {_id: -1},
+        upsert: true
+    })
+    .then(result => {
+        console.log('Added One Like')
+        response.json('Like Added')
+    })
+    .catch(error => console.error(error))
+
+})
+
+app.put('/removeOneLike', (request, response) => {
+    const newLikes = Math.max(0, request.body.likesS - 1);
+
+    db.collection('rappers').updateOne({
+        stageName: request.body.stageNameS, 
+        birthName: request.body.birthNameS,
+        likes: request.body.likesS
+    }, {
+        $set: {
+            likes: newLikes
+        }
+    }, {
+        sort: {_id: -1},
+        upsert: true
+    }).then(result => {
+        console.log('removed like')
+        response.json('Like removed')
+    }).catch(error => console.log(error))
+})
 
 app.listen(PORT, () => {
     console.log('Server is running, you better go catch it at port 21 on localhost.')
